@@ -1,5 +1,5 @@
 import scrapy
-from book_tracker.items import BookTrackerItem
+# from book_tracker.items import BookTrackerItem
 
 
 class BooksSpider(scrapy.Spider):
@@ -8,10 +8,8 @@ class BooksSpider(scrapy.Spider):
     start_urls = ["https://books.toscrape.com/"]
 
     def parse(self, response):
-        self.logger.info("Spider is running at URL=%s", response.url)
-        item = BookTrackerItem()
-        # .get() is safe. will return None if nothing is found. Cool
-        item["url"] = response.url
-        item["title"] = response.css("title::text").get()
+        for href in response.css("article.product_pod h3 a::attr(href)").getall():
+            yield response.follow(href, callback=self.parse_book)
 
-        yield item
+    def parse_book(self, response):
+        self.logger.info("Visited site: %s", response.url)
